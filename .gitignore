@@ -1,0 +1,35 @@
+# Visual Studio 临时文件
+.vs/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.sln.docstates
+ipch/
+*.db
+*.opendb
+
+# 编译输出
+x64/
+Debug/
+Release/
+bin/
+obj/
+
+# 编译产物
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.tlog
+*.recipe
+*.log
+
+# 缓存
+cache/
+
+# 生成的测试报告
+*_report.html
+index.html
