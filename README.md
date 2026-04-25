@@ -63,6 +63,19 @@ OYSQ/
 ├── libs/                    # libcurl 库文件
 └── users.txt                # 多用户输入样例
 
+## 运行截图
+<img width="1399" height="421" alt="image" src="https://github.com/user-attachments/assets/3c056849-d66c-468c-84df-909ce1bc398f" />
+
+<img width="1274" height="768" alt="image" src="https://github.com/user-attachments/assets/b1ec1c41-6b9a-4f8a-8a75-ebbebd3fb876" />
+
+<img width="1242" height="759" alt="image" src="https://github.com/user-attachments/assets/744c056a-62d7-456c-930c-d63c5e2f1ea7" />
+
+<img width="1302" height="607" alt="image" src="https://github.com/user-attachments/assets/0b0d83de-15c3-4b23-9843-cc09e53b33a1" />
+
+<img width="1328" height="643" alt="image" src="https://github.com/user-attachments/assets/aa74e069-33fa-4ad8-9ace-76b1b37f205f" />
+
+<img width="1309" height="727" alt="image" src="https://github.com/user-attachments/assets/c31a0662-14a5-4215-8c98-9b6ab94eb432" />
+
 ## 未来计划
 - 将数据存储迁移至 MySQL，支持持久化与复杂查询
 - 引入调度工具，实现每日自动抓取与增量更新
