@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+ï»¿#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <algorithm>
 #include <cstring>
@@ -23,26 +23,26 @@
 #pragma comment(lib, "crypt32.lib")
 
 int main() {
-    (void)_mkdir("cache");   // Ã÷È·ºöÂÔ·µ»ØÖµ
+    (void)_mkdir("cache");   // æ˜ç¡®å¿½ç•¥è¿”å›å€¼
 
-    std::cout << "Ñ¡ÔñÄ£Ê½£º\n";
-    std::cout << "  1 - µ¥ÓÃ»§£¨ÊäÈëÓÃ»§Ãû£©\n";
-    std::cout << "  2 - ¶àÓÃ»§£¨´Ó users.txt ¶ÁÈ¡£©\n";
-    std::cout << "ÇëÊäÈëÑ¡Ôñ (1/2): ";
+    std::cout << "é€‰æ‹©æ¨¡å¼ï¼š\n";
+    std::cout << "  1 - å•ç”¨æˆ·ï¼ˆè¾“å…¥ç”¨æˆ·åï¼‰\n";
+    std::cout << "  2 - å¤šç”¨æˆ·ï¼ˆä» users.txt è¯»å–ï¼‰\n";
+    std::cout << "è¯·è¾“å…¥é€‰æ‹© (1/2): ";
     int mode;
     std::cin >> mode;
     std::cin.ignore();
 
     if (mode == 1) {
         std::string handle;
-        std::cout << "ÇëÊäÈë Codeforces ÓÃ»§Ãû: ";
+        std::cout << "è¯·è¾“å…¥ Codeforces ç”¨æˆ·å: ";
         std::cin >> handle;
         processUser(handle);
     }
     else if (mode == 2) {
         std::ifstream userFile("users.txt");
         if (!userFile) {
-            std::cerr << "ÎŞ·¨´ò¿ª users.txt£¬ÇëÈ·±£ÎÄ¼ş´æÔÚÓÚ³ÌĞòÄ¿Â¼ÏÂ£¡" << std::endl;
+            std::cerr << "æ— æ³•æ‰“å¼€ users.txtï¼Œè¯·ç¡®ä¿æ–‡ä»¶å­˜åœ¨äºç¨‹åºç›®å½•ä¸‹ï¼" << std::endl;
             system("pause");
             return 1;
         }
@@ -71,7 +71,8 @@ int main() {
 
                 indexOut << "<!DOCTYPE html>\n<html>\n<head>\n";
                 indexOut << "<meta charset=\"UTF-8\">\n";
-                indexOut << "<title>Codeforces ¶àÓÃ»§×ÜÀÀ</title>\n";
+                // åŸæ¥ï¼šindexOut << "<title>Codeforces å¤šç”¨æˆ·æ€»è§ˆ</title>\n";
+                indexOut << "<title>CF Multi-User Overview</title>\n";
                 indexOut << "<style>\n";
                 indexOut << "body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }\n";
                 indexOut << "table { border-collapse: collapse; width: 100%; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }\n";
@@ -80,9 +81,9 @@ int main() {
                 indexOut << "tr:hover { background: #f1f1f1; }\n";
                 indexOut << "a { text-decoration: none; font-weight: bold; }\n";
                 indexOut << "</style>\n</head>\n<body>\n";
-                indexOut << "<h1>Codeforces ÓÃ»§×ÜÀÀ</h1>\n";
+                indexOut << "<h1>Codeforces User Overview</h1>\n";
                 indexOut << "<table>\n";
-                indexOut << "<tr><th>ÓÃ»§Ãû</th><th>µ±Ç°Rating</th><th>Í·ÏÎ</th><th>×î¸ßRating</th><th>×Ü±ÈÈü</th><th>½ü180Ìì±ÈÈü</th><th>½ü180Ìì×î¸ß</th></tr>\n";
+                indexOut << "<tr><th>Handle</th><th>Rating</th><th>Rank</th><th>Max Rating</th><th>Total Contests</th><th>Recent 180d</th><th>180d Max</th></tr>\n";
 
                 for (const auto& s : allSummaries) {
                     indexOut << "<tr>";
@@ -98,12 +99,12 @@ int main() {
 
                 indexOut << "</table>\n</body>\n</html>";
                 indexOut.close();
-                std::cout << "\n¶àÓÃ»§×ÜÀÀÒ³ÃæÒÑÉú³É: index.html" << std::endl;
+                std::cout << "\nå¤šç”¨æˆ·æ€»è§ˆé¡µé¢å·²ç”Ÿæˆ: index.html" << std::endl;
             }
         }
     }
     else {
-        std::cout << "ÎŞĞ§Ñ¡Ôñ£¡" << std::endl;
+        std::cout << "æ— æ•ˆé€‰æ‹©ï¼" << std::endl;
     }
 
     system("pause");

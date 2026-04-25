@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include "utils.h"
 #include <fstream>
 #include <sstream>
@@ -38,7 +38,7 @@ std::pair<std::string, std::string> getColorAndTitle(int rating) {
 std::string formatTime(long long timestamp) {
     time_t t = timestamp;
     struct tm tm_info;
-    localtime_s(&tm_info, &t);  // ʹ�ð�ȫ�汾
+    localtime_s(&tm_info, &t);  // 使用安全版本
     char buffer[32];
     strftime(buffer, sizeof(buffer), "%Y-%m-%d", &tm_info);
     return std::string(buffer);

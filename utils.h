@@ -1,14 +1,14 @@
-#pragma once
+ï»¿#pragma once
 #include <string>
 #include <utility>
 
-// ÎÄ¼ş»º´æ
+// æ–‡ä»¶ç¼“å­˜
 bool file_exists(const std::string& filename);
 std::string read_file(const std::string& filename);
 void write_file(const std::string& filename, const std::string& content);
 
-// ÑÕÉ«Ó³Éä
+// é¢œè‰²æ˜ å°„
 std::pair<std::string, std::string> getColorAndTitle(int rating);
 
-// Ê±¼ä¸ñÊ½»¯
+// æ—¶é—´æ ¼å¼åŒ–
 std::string formatTime(long long timestamp);

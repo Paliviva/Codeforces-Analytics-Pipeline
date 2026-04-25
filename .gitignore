@@ -26,6 +26,7 @@ obj/
 *.tlog
 *.recipe
 *.log
+*_data.json
 
 # 缓存
 cache/

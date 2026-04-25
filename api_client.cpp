@@ -1,6 +1,6 @@
-#define _CRT_SECURE_NO_WARNINGS
+ï»¿#define _CRT_SECURE_NO_WARNINGS
 #include "api_client.h"
-#include "utils.h"          // ÒòÎªÓÃµ½ÁË file_exists, read_file, write_file
+#include "utils.h"          // å› ä¸ºç”¨åˆ°äº† file_exists, read_file, write_file
 #include <curl/curl.h>
 #include <windows.h>        // Sleep
 #include <ctime>
@@ -16,7 +16,7 @@ void throttle() {
     static time_t lastCall = 0;
     time_t now = time(nullptr);
     if (now - lastCall < 2) {
-        Sleep(2000 - (now - lastCall) * 1000);
+        Sleep((DWORD)(2000 - (now - lastCall) * 1000));
     }
     lastCall = time(nullptr);
 }
@@ -47,7 +47,7 @@ std::string getUserRating(const std::string& handle) {
 std::string getContestStandings(int contestId, const std::string& handle) {
     std::string cacheFile = "cache/contest_" + std::to_string(contestId) + ".json";
     if (file_exists(cacheFile)) {
-        std::cout << "´Ó»º´æ¼ÓÔØ±ÈÈü " << contestId << std::endl;
+        std::cout << "ä»Žç¼“å­˜åŠ è½½æ¯”èµ› " << contestId << std::endl;
         return read_file(cacheFile);
     }
     std::string url = "https://codeforces.com/api/contest.standings?contestId="
@@ -55,7 +55,7 @@ std::string getContestStandings(int contestId, const std::string& handle) {
     std::string response = httpGet(url);
     if (!response.empty()) {
         write_file(cacheFile, response);
-        std::cout << "ÒÑ»º´æ±ÈÈü " << contestId << std::endl;
+        std::cout << "å·²ç¼“å­˜æ¯”èµ› " << contestId << std::endl;
     }
     return response;
 }

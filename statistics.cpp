@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+ï»¿#define _CRT_SECURE_NO_WARNINGS
 #include "statistics.h"
 #include "api_client.h"
 #include "data_parser.h"
@@ -6,9 +6,9 @@
 #include <ctime>
 #include <cstring>
 
-// ËÄ¸öº¯ÊıÊµÏÖ£¬Ö±½Ó¼ôÇĞ¹ıÀ´
+// å››ä¸ªå‡½æ•°å®ç°ï¼Œç›´æ¥å‰ªåˆ‡è¿‡æ¥
 void markAfterContestSolves(std::vector<RatingChange>& history, const std::string& handle) {
-    // 1. »ñÈ¡ÓÃ»§ËùÓĞÌá½»
+    // 1. è·å–ç”¨æˆ·æ‰€æœ‰æäº¤
     std::string statusJson = getUserStatus(handle);
     if (statusJson.empty()) return;
 
@@ -25,12 +25,12 @@ void markAfterContestSolves(std::vector<RatingChange>& history, const std::strin
         return;
     }
 
-    // 2. ±éÀúÌá½»£¬ÕÒ³öÃ¿¸ö±ÈÈüÃ¿µÀÌâµÄÊ×´ÎACÊ±¼ä
+    // 2. éå†æäº¤ï¼Œæ‰¾å‡ºæ¯ä¸ªæ¯”èµ›æ¯é“é¢˜çš„é¦–æ¬¡ACæ—¶é—´
     int subCount = cJSON_GetArraySize(result);
     for (int i = 0; i < subCount; i++) {
         cJSON* sub = cJSON_GetArrayItem(result, i);
         cJSON* verdict = cJSON_GetObjectItem(sub, "verdict");
-        if (!verdict || strcmp(verdict->valuestring, "OK") != 0) continue; // Ö»¿´AC
+        if (!verdict || strcmp(verdict->valuestring, "OK") != 0) continue; // åªçœ‹AC
 
         cJSON* problem = cJSON_GetObjectItem(sub, "problem");
         if (!problem) continue;
@@ -43,22 +43,22 @@ void markAfterContestSolves(std::vector<RatingChange>& history, const std::strin
         std::string index = indexItem->valuestring;
         long long submitTime = (long long)timeItem->valuedouble;
 
-        // ÕÒµ½¶ÔÓ¦µÄ±ÈÈü
+        // æ‰¾åˆ°å¯¹åº”çš„æ¯”èµ›
         for (auto& rc : history) {
             if (rc.contestId != contestId) continue;
-            // ÕÒµ½¶ÔÓ¦µÄÌâ
+            // æ‰¾åˆ°å¯¹åº”çš„é¢˜
             for (int j = 0; j < rc.problemCount; j++) {
                 if (rc.problems[j].index == index) {
-                    // Èç¹ûÕâµÀÌâÖ®Ç°Ã»±»±ê¼Ç¹ıAC£¬»òÕßÕâ´ÎÌá½»¸üÔç£¬¼ÇÂ¼Ê±¼ä
-                    // µ«ÅĞ¶¨²¹ÌâÖ»ĞèÒªÖªµÀ¡°ÊÇ·ñÔÚ±ÈÈü½áÊøºóAC¡±£¬ËùÒÔÏÈ¼ÇÏÂ×îÔçACÊ±¼äÒ²ĞĞ
-                    // ¼ò»¯£ºÖ»ÒªÓĞÒ»´ÎAC£¬¾Í¼ì²éÊ±¼ä
-                    // ÎÒÃÇĞèÒª±ÈÈü½áÊøÊ±¼ä£¬µ«µ±Ç°Ã»ÓĞ´æ£¬¿ÉÒÔÓÃÒ»¸ö¹ÀËã£ºratingUpdateTimeSecondsÊÇ±ÈÈürating¸üĞÂÊ±¼ä£¬Í¨³£ÔÚ±ÈÈü½áÊøºó²»¾Ã
-                    // ¸ü×¼È·µÄ×ö·¨£º´Ócontest.list»ñÈ¡duration£¬µ«ÕâÀï¼ò»¯£ºÓÃratingUpdateTimeSeconds×÷Îª±ÈÈü½áÊø²Î¿¼
-                    if (submitTime > rc.timestamp) { // rc.timestampÊÇratingUpdateTimeSeconds
+                    // å¦‚æœè¿™é“é¢˜ä¹‹å‰æ²¡è¢«æ ‡è®°è¿‡ACï¼Œæˆ–è€…è¿™æ¬¡æäº¤æ›´æ—©ï¼Œè®°å½•æ—¶é—´
+                    // ä½†åˆ¤å®šè¡¥é¢˜åªéœ€è¦çŸ¥é“â€œæ˜¯å¦åœ¨æ¯”èµ›ç»“æŸåACâ€ï¼Œæ‰€ä»¥å…ˆè®°ä¸‹æœ€æ—©ACæ—¶é—´ä¹Ÿè¡Œ
+                    // ç®€åŒ–ï¼šåªè¦æœ‰ä¸€æ¬¡ACï¼Œå°±æ£€æŸ¥æ—¶é—´
+                    // æˆ‘ä»¬éœ€è¦æ¯”èµ›ç»“æŸæ—¶é—´ï¼Œä½†å½“å‰æ²¡æœ‰å­˜ï¼Œå¯ä»¥ç”¨ä¸€ä¸ªä¼°ç®—ï¼šratingUpdateTimeSecondsæ˜¯æ¯”èµ›ratingæ›´æ–°æ—¶é—´ï¼Œé€šå¸¸åœ¨æ¯”èµ›ç»“æŸåä¸ä¹…
+                    // æ›´å‡†ç¡®çš„åšæ³•ï¼šä»contest.listè·å–durationï¼Œä½†è¿™é‡Œç®€åŒ–ï¼šç”¨ratingUpdateTimeSecondsä½œä¸ºæ¯”èµ›ç»“æŸå‚è€ƒ
+                    if (submitTime > rc.timestamp) { // rc.timestampæ˜¯ratingUpdateTimeSeconds
                         rc.problems[j].solvedAfter = 1;
                     }
                     else {
-                        rc.problems[j].solvedAfter = 0; // ³¡ÄÚAC
+                        rc.problems[j].solvedAfter = 0; // åœºå†…AC
                     }
                     break;
                 }
@@ -67,7 +67,7 @@ void markAfterContestSolves(std::vector<RatingChange>& history, const std::strin
     }
     cJSON_Delete(root);
 }
-// ==================== Í³¼Æ¼ÆËã ====================
+// ==================== ç»Ÿè®¡è®¡ç®— ====================
 int countRecentContests(const std::vector<RatingChange>& history, int days) {
     time_t now = time(nullptr);
     time_t cutoff = now - days * 24 * 3600;
@@ -93,11 +93,11 @@ int getMaxRatingRecent(const std::vector<RatingChange>& history, int days) {
 void computeDifficultyHistogram(const std::vector<RatingChange>& history,
     const std::string& handle,
     int binsAll[6], int bins180[6]) {
-    // ³õÊ¼»¯
+    // åˆå§‹åŒ–
     memset(binsAll, 0, 6 * sizeof(int));
     memset(bins180, 0, 6 * sizeof(int));
 
-    // »ñÈ¡ÓÃ»§ËùÓĞACÌá½»
+    // è·å–ç”¨æˆ·æ‰€æœ‰ACæäº¤
     std::string statusJson = getUserStatus(handle);
     if (statusJson.empty()) return;
     cJSON* root = cJSON_Parse(statusJson.c_str());
@@ -121,7 +121,7 @@ void computeDifficultyHistogram(const std::vector<RatingChange>& history,
         cJSON* timeItem = cJSON_GetObjectItem(sub, "creationTimeSeconds");
         long long submitTime = (long long)timeItem->valuedouble;
 
-        // È·¶¨µµÎ»
+        // ç¡®å®šæ¡£ä½
         int idx = 0;
         if (rating <= 1000) idx = 0;
         else if (rating <= 1500) idx = 1;

@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+ï»¿#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include "html_render.h"
 #include "api_client.h"
@@ -8,175 +8,246 @@
 #include <fstream>
 #include <algorithm>
 #include <iomanip>
+#include <sstream> // éœ€è¦ç”¨åˆ° std::ostringstream
 
-// generateHTML ºÍ processUser ÊµÏÖ
+// generateHTML å’Œ processUser å®ç°
 void generateHTML(const UserInfo& user, const std::vector<RatingChange>& history, const int binsAll[6], const int bins180[6]) {
-    std::ofstream out(user.handle + "_report.html", std::ios::binary);
-    if (!out) {
-        std::cerr << "ÎŞ·¨´´½¨HTMLÎÄ¼ş£¡" << std::endl;
+    // 1. ã€ç”Ÿæˆæ•°æ®æ–‡ä»¶çš„å†…å®¹ï¼Œå‡†å¤‡æ³¨å…¥åˆ°æ¨¡æ¿é‡Œã€‘
+    std::ostringstream dataStream;
+    auto colorAndTitle = getColorAndTitle(user.rating);
+    std::string color = colorAndTitle.first;
+    std::string title = colorAndTitle.second;
+    dataStream << "{\n";
+    dataStream << "  \"handle\": \"" << user.handle << "\",\n";
+    dataStream << "  \"rating\": " << user.rating << ",\n";
+    dataStream << "  \"maxRating\": " << user.maxRating << ",\n";
+    dataStream << "  \"rank\": \"" << user.rank << "\",\n";
+    dataStream << "  \"color\": \"" << color << "\",\n";
+    dataStream << "  \"avatar\": \"" << user.avatar << "\",\n";
+    dataStream << "  \"totalContests\": " << (int)history.size() << ",\n";
+    dataStream << "  \"recentCount\": " << countRecentContests(history, 180) << ",\n";
+    dataStream << "  \"recentMax\": " << getMaxRatingRecent(history, 180) << ",\n";
+
+    // Ratingå†å²
+    dataStream << "  \"ratingHistory\": [\n";
+    for (size_t i = 0; i < history.size(); i++) {
+        dataStream << "    [" << history[i].timestamp * 1000LL << ", " << history[i].newRating << "]";
+        if (i != history.size() - 1) dataStream << ",";
+        dataStream << "\n";
+    }
+    dataStream << "  ],\n";
+
+    // éš¾åº¦åˆ†å¸ƒ
+    dataStream << "  \"binsAll\": [";
+    for (int i = 0; i < 6; i++) { dataStream << binsAll[i]; if (i < 5) dataStream << ", "; }
+    dataStream << "],\n";
+    dataStream << "  \"bins180\": [";
+    for (int i = 0; i < 6; i++) { dataStream << bins180[i]; if (i < 5) dataStream << ", "; }
+    dataStream << "],\n";
+
+    // æ¯”èµ›è¯¦æƒ…
+    dataStream << "  \"contests\": [\n";
+    std::vector<RatingChange> sorted = history;
+    std::sort(sorted.begin(), sorted.end(), [](const RatingChange& a, const RatingChange& b) { return a.timestamp > b.timestamp; });
+    for (size_t i = 0; i < sorted.size(); i++) {
+        auto& rc = sorted[i];
+        auto oldPair = getColorAndTitle(rc.oldRating);
+        std::string oldColor = oldPair.first;
+        auto newPair = getColorAndTitle(rc.newRating);
+        std::string newColor = newPair.first;
+        std::string scores = "";
+        for (int j = 0; j < rc.problemCount; j++) {
+            scores += rc.problems[j].index + ":" + std::to_string(rc.problems[j].points).substr(0, 4) + " ";
+        }
+        std::string upsolved = "";
+        for (int j = 0; j < rc.problemCount; j++) {
+            if (rc.problems[j].solvedAfter) upsolved += rc.problems[j].index + "âˆš ";
+        }
+
+        dataStream << "    {\n";
+        dataStream << "      \"name\": \"" << rc.contestName << "\",\n";
+        dataStream << "      \"date\": \"" << formatTime(rc.timestamp) << "\",\n";
+        dataStream << "      \"oldRating\": " << rc.oldRating << ",\n";
+        dataStream << "      \"oldColor\": \"" << oldColor << "\",\n";
+        dataStream << "      \"newRating\": " << rc.newRating << ",\n";
+        dataStream << "      \"newColor\": \"" << newColor << "\",\n";
+        dataStream << "      \"rank\": " << rc.rank << ",\n";
+        dataStream << "      \"scores\": \"" << scores << "\",\n";
+        dataStream << "      \"upsolved\": \"" << upsolved << "\"\n";
+        dataStream << "    }";
+        if (i != sorted.size() - 1) dataStream << ",";
+        dataStream << "\n";
+    }
+    dataStream << "  ]\n";
+    dataStream << "}\n";
+
+    std::string jsonData = dataStream.str();
+
+    // 2. ã€å°†æ•°æ®ç›´æ¥æ³¨å…¥å†…ç½®æ¨¡æ¿ï¼Œç”Ÿæˆè‡ªåŒ…å«çš„æœ€ç»ˆæŠ¥å‘Šã€‘
+    std::ofstream dst(user.handle + "_report.html", std::ios::binary);
+    if (!dst) {
+        std::cerr << "æ— æ³•åˆ›å»ºæŠ¥å‘Šæ–‡ä»¶ï¼" << std::endl;
         return;
     }
-    // Ğ´ÈëUTF-8 BOM
-    const unsigned char bom[] = { 0xEF, 0xBB, 0xBF };
-    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
-    std::vector<RatingChange> sorted = history;
-    std::sort(sorted.begin(), sorted.end(), [](const RatingChange& a, const RatingChange& b) {
-        return a.timestamp > b.timestamp;
+
+    // æˆ‘ä»¬çš„ HTML æ¨¡æ¿ç›´æ¥å†™åœ¨è¿™é‡Œï¼Œå¹¶ç”¨ä¸€ä¸ªå ä½ç¬¦ __JSON_DATA__ ç­‰å¾…è¢«æ›¿æ¢
+    std::string htmlTemplate = R"(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CF Analyzer</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .card { background: white; padding: 20px; margin: 20px auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 1200px; }
+        .user-header { display: flex; align-items: center; gap: 20px; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; }
+        h1 { margin: 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="user-header">
+            <img class="avatar" id="avatar" src="" alt="avatar">
+            <div>
+                <h1 id="handle" style="color: #ff8c00;"></h1>
+                <p>Title: <span id="rank"></span> | Rating: <span id="rating"></span></p>
+                <p>Max Rating: <span id="maxRating"></span> | Total Contests: <span id="totalContests"></span></p>
+                <p>Recent 180d Contests: <span id="recentCount"></span> | Recent 180d Max: <span id="recentMax"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Rating History</h2>
+        <div id="ratingChart" style="width:100%;height:400px;"></div>
+    </div>
+
+    <div class="card">
+        <h2>Problem Difficulty Distribution</h2>
+        <div id="difficultyChart" style="width:100%;height:400px;"></div>
+    </div>
+
+    <div class="card">
+        <h2>Contest Details</h2>
+        <table id="contestTable">
+            <thead>
+                <tr><th>Contest Name</th><th>Date</th><th>Old Rating</th><th>New Rating</th><th>Rank</th><th>Scores</th><th>Upsolved</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        var data = __JSON_DATA__;
+
+        document.getElementById('handle').textContent = data.handle;
+        document.getElementById('handle').style.color = data.color;
+        document.getElementById('rank').textContent = data.rank;
+        document.getElementById('rating').textContent = data.rating;
+        document.getElementById('maxRating').textContent = data.maxRating;
+        document.getElementById('totalContests').textContent = data.totalContests;
+        document.getElementById('recentCount').textContent = data.recentCount;
+        document.getElementById('recentMax').textContent = data.recentMax;
+        if(data.avatar) document.getElementById('avatar').src = data.avatar;
+
+        var chart = echarts.init(document.getElementById('ratingChart'));
+        chart.setOption({
+            xAxis: { type: 'time', name: 'Time' },
+            yAxis: { type: 'value', name: 'Rating' },
+            series: [{
+                data: data.ratingHistory,
+                type: 'line', smooth: true,
+                lineStyle: { color: '#ff8c00', width: 3 },
+                areaStyle: { color: 'rgba(255,140,0,0.1)' }
+            }],
+            tooltip: { trigger: 'axis' }
         });
 
-    std::pair<std::string, std::string> userPair = getColorAndTitle(user.rating);
-    std::string color = userPair.first;
-    std::string title = userPair.second;
+        var diffChart = echarts.init(document.getElementById('difficultyChart'));
+        diffChart.setOption({
+            title: { text: 'AC Problem Difficulty' },
+            xAxis: { data: ['<=1000', '1001-1500', '1501-2000', '2001-2500', '2501-3000', '>3000'] },
+            yAxis: {},
+            series: [
+                { name: 'All', type: 'bar', data: data.binsAll },
+                { name: 'Recent 180d', type: 'bar', data: data.bins180 }
+            ],
+            legend: { data: ['All', 'Recent 180d'] },
+            tooltip: { trigger: 'axis' },
+            grid: { left: '10%', right: '5%', bottom: '10%', top: '15%' }
+        });
 
-    int totalContests = (int)history.size();
-    int recent180Count = countRecentContests(history, 180);
-    int recent180Max = getMaxRatingRecent(history, 180);
+        var tbody = document.querySelector('#contestTable tbody');
+        data.contests.forEach(c => {
+            var row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${c.name}</td><td>${c.date}</td>
+                <td style="color:${c.oldColor}">${c.oldRating}</td>
+                <td style="color:${c.newColor}">${c.newRating}</td>
+                <td>${c.rank}</td><td>${c.scores}</td><td>${c.upsolved}</td>
+            `;
+        });
+    </script>
+</body>
+</html>
+    )";
 
-    // HTMLÍ·²¿
-    out << "<!DOCTYPE html>\n<html>\n<head>\n";
-    out << "<meta charset=\"UTF-8\">\n";
-    out << "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n";
-    out << "<title>Codeforces Clawer - " << user.handle << "</title>\n";
-    out << "<script src=\"https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js\"></script>\n";
-    out << "<style>\n";
-    out << "body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background: #f5f5f5; }\n";
-    out << ".card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }\n";
-    out << ".user-header { display: flex; align-items: center; gap: 20px; }\n";
-    out << ".avatar { width: 80px; height: 80px; border-radius: 50%; }\n";
-    out << "h1 { margin: 0; }\n";
-    out << "table { width: 100%; border-collapse: collapse; }\n";
-    out << "th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }\n";
-    out << "</style>\n</head>\n<body>\n";
-
-    // ÓÃ»§ĞÅÏ¢¿¨Æ¬
-    out << "<div class=\"card\">\n<div class=\"user-header\">\n";
-    out << "<img class=\"avatar\" src=\"" << user.avatar << "\" alt=\"avatar\">\n";
-    out << "<div>\n";
-    out << "<h1 style=\"color: " << color << ";\">" << user.handle << "</h1>\n";
-    out << "<p>µ±Ç°Í·ÏÎ: " << user.rank << " | µ±Ç°µÈ¼¶·Ö: " << user.rating << "</p>\n";
-    out << "<p>×î¸ßµÈ¼¶·Ö: " << user.maxRating << " | ×Ü±ÈÈü´ÎÊı: " << totalContests << "</p>\n";
-    out << "<p>½ü180Ìì±ÈÈü´ÎÊı: " << recent180Count << " | ½ü180Ìì×î¸ß·Ö: " << recent180Max << "</p>\n";
-    out << "</div></div></div>\n";
-
-    // EChartsÕÛÏßÍ¼
-    out << "<div class=\"card\">\n<h2>Rating±ä»¯ÇúÏß</h2>\n";
-    out << "<div id=\"ratingChart\" style=\"width:100%;height:400px;\"></div>\n</div>\n";
-    out << "<script>\n";
-    out << "var chart = echarts.init(document.getElementById('ratingChart'));\n";
-    out << "var option = {\n";
-    out << "  xAxis: { type: 'time', name: '±ÈÈüÊ±¼ä' },\n";
-    out << "  yAxis: { type: 'value', name: 'Rating' },\n";
-    out << "  series: [{\n";
-    out << "    data: [\n";
-    for (size_t i = 0; i < sorted.size(); i++) {
-        out << "      [" << sorted[i].timestamp * 1000LL << ", " << sorted[i].newRating << "]";
-        if (i != sorted.size() - 1) out << ",";
-        out << "\n";
+    // æ‰¾åˆ°æ¨¡æ¿ä¸­çš„å ä½ç¬¦ï¼Œå¹¶å°†å…¶æ›¿æ¢ä¸ºæˆ‘ä»¬ç”Ÿæˆçš„ JSON æ•°æ®å­—ç¬¦ä¸²
+    size_t pos = htmlTemplate.find("__JSON_DATA__");
+    if (pos != std::string::npos) {
+        htmlTemplate.replace(pos, 13, jsonData); // 13 æ˜¯ "__JSON_DATA__" çš„é•¿åº¦
     }
-    out << "    ],\n";
-    out << "    type: 'line',\n";
-    out << "    smooth: true,\n";
-    out << "    lineStyle: { color: '#ff8c00', width: 3 },\n";
-    out << "    areaStyle: { color: 'rgba(255,140,0,0.1)' }\n";
-    out << "  }],\n";
-    out << "  tooltip: { trigger: 'axis' }\n";
-    out << "};\n";
-    out << "chart.setOption(option);\n</script>\n";
 
-    // ÄÑ¶ÈÖ±·½Í¼£¨È«²¿ + ½ü180Ìì£©
-    out << "<div class=\"card\">\n<h2>ÌâÄ¿ÄÑ¶È·Ö²¼</h2>\n";
-    out << "<div id=\"difficultyChart\" style=\"width:100%;height:400px;\"></div>\n</div>\n";
-    out << "<script>\n";
-    out << "var diffChart = echarts.init(document.getElementById('difficultyChart'));\n";
-    out << "var diffOption = {\n";
-    out << "  title: { text: 'ACÌâÄ¿ÄÑ¶È·Ö²¼' },\n";
-    out << "  xAxis: { data: ['¡Ü1000', '1001-1500', '1501-2000', '2001-2500', '2501-3000', '>3000'] },\n";
-    out << "  yAxis: {},\n";
-    out << "  series: [\n";
-    out << "    { name: 'È«²¿', type: 'bar', data: [";
-    for (int i = 0; i < 6; i++) { out << binsAll[i]; if (i < 5) out << ", "; }
-    out << "] },\n";
-    out << "    { name: '½ü180Ìì', type: 'bar', data: [";
-    for (int i = 0; i < 6; i++) { out << bins180[i]; if (i < 5) out << ", "; }
-    out << "] }\n";
-    out << "  ],\n";
-    out << "  legend: { data: ['È«²¿', '½ü180Ìì'] },\n";
-    out << "  tooltip: { trigger: 'axis' },\n";
-    out << "  grid: { left: '10%', right: '5%', bottom: '10%', top: '15%' }\n";
-    out << "};\n";
-    out << "diffChart.setOption(diffOption);\n</script>\n";
+    dst << htmlTemplate;
+    dst.close(); // è¿™å°±æ˜¯æ­£ç¡®çš„å†™æ³•
 
-    // ±ÈÈüÏêÇé±í¸ñ
-    out << "<div class=\"card\">\n<h2>±ÈÈüÏêÇé</h2>\n<table>\n";
-    out << "<tr><th>ÈüÊÂÃû³Æ</th><th>±ÈÈüÊ±¼ä</th><th>ÈüÇ°Rating</th><th>ÈüºóRating</th><th>ÅÅÃû</th><th>¸÷ÌâµÃ·Ö</th><th>²¹ÌâÇé¿ö</th></tr>\n";
-    for (const auto& rc : sorted) {
-        std::pair<std::string, std::string> oldPair = getColorAndTitle(rc.oldRating);
-        std::string oldColor = oldPair.first;
-        std::pair<std::string, std::string> newPair = getColorAndTitle(rc.newRating);
-        std::string newColor = newPair.first;
-
-        out << "<tr>";
-        out << "<td>" << rc.contestName << "</td>";
-        out << "<td>" << formatTime(rc.timestamp) << "</td>";
-        out << "<td style=\"color:" << oldColor << ";\">" << rc.oldRating << "</td>";
-        out << "<td style=\"color:" << newColor << ";\">" << rc.newRating << "</td>";
-        out << "<td>" << rc.rank << "</td>";
-        out << "<td>";
-        for (int j = 0; j < rc.problemCount; j++) {
-            out << rc.problems[j].index << ":" << rc.problems[j].points << " ";
-        }
-        out << "</td>";
-        out << "<td>";
-        for (int j = 0; j < rc.problemCount; j++) {
-            if (rc.problems[j].solvedAfter) out << rc.problems[j].index << "¡Ì ";
-        }
-        out << "</td>";
-        out << "</tr>\n";
-    }
-    out << "</table>\n</div>\n</body>\n</html>";
-    out.close();
-    std::cout << "±¨¸æÒÑÉú³É: " << user.handle << "_report.html" << std::endl;
+    std::cout << "æŠ¥å‘Šå·²ç”Ÿæˆ: " << user.handle << "_report.html" << std::endl;
 }
-
-// ´¦Àíµ¥¸öÓÃ»§£¬Éú³É±¨¸æ£¬²¢·µ»ØÕªÒªĞÅÏ¢
+// å¤„ç†å•ä¸ªç”¨æˆ·ï¼Œç”ŸæˆæŠ¥å‘Šï¼Œå¹¶è¿”å›æ‘˜è¦ä¿¡æ¯
 UserSummary processUser(const std::string& handle) {
     UserSummary summary;
     summary.handle = handle;
 
-    std::cout << "\n===== ÕıÔÚ´¦ÀíÓÃ»§: " << handle << " =====\n";
+    std::cout << "\n===== æ­£åœ¨å¤„ç†ç”¨æˆ·: " << handle << " =====\n";
 
-    // 1. »ñÈ¡ÓÃ»§ĞÅÏ¢
+    // 1. è·å–ç”¨æˆ·ä¿¡æ¯
     std::string userJson = getUserInfo(handle);
     if (userJson.empty()) {
-        std::cerr << "»ñÈ¡ÓÃ»§ĞÅÏ¢Ê§°Ü£¡Ìø¹ı¸ÃÓÃ»§¡£" << std::endl;
+        std::cerr << "è·å–ç”¨æˆ·ä¿¡æ¯å¤±è´¥ï¼è·³è¿‡è¯¥ç”¨æˆ·ã€‚" << std::endl;
         summary.rating = 0;
         return summary;
     }
     UserInfo user = parseUserInfo(userJson);
-    std::cout << "ÓÃ»§: " << user.handle << ", Rating: " << user.rating << std::endl;
+    std::cout << "ç”¨æˆ·: " << user.handle << ", Rating: " << user.rating << std::endl;
 
-    // Ìî³äÕªÒª
+    // å¡«å……æ‘˜è¦
     summary.rating = user.rating;
     summary.maxRating = user.maxRating;
     summary.rank = user.rank;
     std::pair<std::string, std::string> colorPair = getColorAndTitle(user.rating);
     summary.color = colorPair.first;
 
-    // 2. »ñÈ¡±ÈÈüÀúÊ·
+    // 2. è·å–æ¯”èµ›å†å²
     std::string ratingJson = getUserRating(handle);
     if (ratingJson.empty()) {
-        std::cerr << "»ñÈ¡±ÈÈüÀúÊ·Ê§°Ü£¡Ìø¹ı¸ÃÓÃ»§¡£" << std::endl;
+        std::cerr << "è·å–æ¯”èµ›å†å²å¤±è´¥ï¼è·³è¿‡è¯¥ç”¨æˆ·ã€‚" << std::endl;
         return summary;
     }
     std::vector<RatingChange> history = parseUserRating(ratingJson);
-    std::cout << "¹²ÕÒµ½ " << history.size() << " ³¡±ÈÈü¼ÇÂ¼" << std::endl;
+    std::cout << "å…±æ‰¾åˆ° " << history.size() << " åœºæ¯”èµ›è®°å½•" << std::endl;
 
     summary.totalContests = (int)history.size();
     summary.recent180Count = countRecentContests(history, 180);
     summary.recent180Max = getMaxRatingRecent(history, 180);
 
-    // 3. ²¹È«Ã¿³¡±ÈÈüµÄ¸÷Ìâ·ÖÊı
-    std::cout << "ÕıÔÚ»ñÈ¡¸÷³¡±ÈÈüÏêÏ¸Êı¾İ..." << std::endl;
+    // 3. è¡¥å…¨æ¯åœºæ¯”èµ›çš„å„é¢˜åˆ†æ•°
+    std::cout << "æ­£åœ¨è·å–å„åœºæ¯”èµ›è¯¦ç»†æ•°æ®..." << std::endl;
     for (auto& rc : history) {
         std::string standingsJson = getContestStandings(rc.contestId, handle);
         if (!standingsJson.empty()) {
@@ -185,14 +256,14 @@ UserSummary processUser(const std::string& handle) {
         throttle();
     }
 
-    // 4. ±ê¼ÇÈüºó²¹Ìâ
+    // 4. æ ‡è®°èµ›åè¡¥é¢˜
     markAfterContestSolves(history, handle);
 
-    // 5. ¼ÆËãÄÑ¶È·Ö²¼
+    // 5. è®¡ç®—éš¾åº¦åˆ†å¸ƒ
     int binsAll[6], bins180[6];
     computeDifficultyHistogram(history, handle, binsAll, bins180);
 
-    // 6. Éú³ÉHTML±¨¸æ
+    // 6. ç”ŸæˆHTMLæŠ¥å‘Š
     generateHTML(user, history, binsAll, bins180);
 
     return summary;
