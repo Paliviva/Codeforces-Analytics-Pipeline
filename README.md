@@ -3,7 +3,6 @@
 > 从 libcurl 都装不上，到一套完整的模块化数据管道。这不仅是课设，是我写给 17 岁自己的一封情书。
 
 ## 📌 项目简介
-<<<<<<< Updated upstream
 本项目利用 Codeforces 官方 API，自动抓取用户比赛信息与提交记录，进行多维度统计，并生成交互式 HTML 可视化报告。支持单用户深度分析与多用户批量对比。
 
 最初这只是程序设计课程大作业，但我没有止步于“能跑就行”。后续加入了本地缓存、赛后补题判定、双窗口难度直方图、模块化重构等进阶特性，把它从一个单文件脚本打磨成了具备工业思维的数据管道。
@@ -64,17 +63,14 @@ OYSQ/
 └── users.txt                # 多用户输入样例
 
 ## 运行截图
-<img width="1399" height="421" alt="image" src="https://github.com/user-attachments/assets/3c056849-d66c-468c-84df-909ce1bc398f" />
+## 运行截图
+![个人报告示例](https://github.com/SiqiOuyang/competitive-analytics-pipeline/blob/main/screenshots/chart.png)
 
-<img width="1274" height="768" alt="image" src="https://github.com/user-attachments/assets/b1ec1c41-6b9a-4f8a-8a75-ebbebd3fb876" />
+![个人报告示例](https://github.com/SiqiOuyang/competitive-analytics-pipeline/blob/main/screenshots/tourist_report2.png)
 
-<img width="1242" height="759" alt="image" src="https://github.com/user-attachments/assets/744c056a-62d7-456c-930c-d63c5e2f1ea7" />
+![多用户总览示例](https://github.com/SiqiOuyang/competitive-analytics-pipeline/blob/main/screenshots/index_page.png)
 
-<img width="1302" height="607" alt="image" src="https://github.com/user-attachments/assets/0b0d83de-15c3-4b23-9843-cc09e53b33a1" />
-
-<img width="1328" height="643" alt="image" src="https://github.com/user-attachments/assets/aa74e069-33fa-4ad8-9ace-76b1b37f205f" />
-
-<img width="1309" height="727" alt="image" src="https://github.com/user-attachments/assets/c31a0662-14a5-4215-8c98-9b6ab94eb432" />
+![tourist报告](https://github.com/SiqiOuyang/competitive-analytics-pipeline/blob/main/screenshots/tourist_report.png)
 
 ## 未来计划
 - 将数据存储迁移至 MySQL，支持持久化与复杂查询
