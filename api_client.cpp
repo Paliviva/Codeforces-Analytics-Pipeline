@@ -1,4 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS   //数据入口
 #include "api_client.h"
 #include "utils.h"          // 因为用到了 file_exists, read_file, write_file
 #include <curl/curl.h>
@@ -10,9 +10,9 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
     size_t totalSize = size * nmemb;
     userp->append((char*)contents, totalSize);
     return totalSize;
-}
+}  //会被网络库调用多次  每次接受数据分片  计算实际写入量size&nmumb  
 
-void throttle() {
+void throttle() {    //限流函数  static time_t lastCall是一个静态局部变量，它的值在函数调用结束后不会丢失，下次调用时依然是上次的值
     static time_t lastCall = 0;
     time_t now = time(nullptr);
     if (now - lastCall < 2) {

@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS   //检查数据  防御性编程  把JSON拆开 检查 装进结构体
 #include "data_parser.h"
 #include "third_party/cJSON.h"
 #include <cstring>
@@ -6,7 +6,7 @@
 UserInfo parseUserInfo(const std::string& jsonStr) {
     UserInfo info;
     cJSON* root = cJSON_Parse(jsonStr.c_str());
-    if (!root) return info;
+    if (!root) return info;// 1.解析失败防御
     cJSON* status = cJSON_GetObjectItem(root, "status");
     if (status && strcmp(status->valuestring, "OK") == 0) {
         cJSON* result = cJSON_GetObjectItem(root, "result");
@@ -15,7 +15,7 @@ UserInfo parseUserInfo(const std::string& jsonStr) {
             cJSON* handle = cJSON_GetObjectItem(user, "handle");
             if (handle) info.handle = handle->valuestring;
             cJSON* rating = cJSON_GetObjectItem(user, "rating");
-            if (rating) info.rating = rating->valueint;
+            if (rating) info.rating = rating->valueint;// 2.字段缺失防御
             cJSON* maxRating = cJSON_GetObjectItem(user, "maxRating");
             if (maxRating) info.maxRating = maxRating->valueint;
             cJSON* rank = cJSON_GetObjectItem(user, "rank");
@@ -24,7 +24,7 @@ UserInfo parseUserInfo(const std::string& jsonStr) {
             if (avatar) info.avatar = avatar->valuestring;
         }
     }
-    cJSON_Delete(root);
+    cJSON_Delete(root);// 3.内存管理   忘记了就会内存泄漏
     return info;
 }
 
@@ -59,7 +59,7 @@ std::vector<RatingChange> parseUserRating(const std::string& jsonStr) {
     cJSON_Delete(root);
     return history;
 }
-
+//分层解析：parseUserInfo只管用户数据，fillStandingsInfo只管比赛详情。分工明确，代码不会乱
 void fillStandingsInfo(const std::string& jsonStr, RatingChange& rc, const std::string& handle) {
     cJSON* root = cJSON_Parse(jsonStr.c_str());
     if (!root) return;

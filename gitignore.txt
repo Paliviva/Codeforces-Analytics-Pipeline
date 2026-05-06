@@ -1,0 +1,31 @@
+# Visual Studio 临时文件
+.vs/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.sln.docstates
+
+# 编译输出
+x64/
+Debug/
+Release/
+bin/
+obj/
+
+# 编译产物
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.tlog
+*.recipe
+*.log
+
+# 缓存（可选，如果不想上传已缓存的比赛数据）
+# cache/
+
+# 用户私人文件（可选）
+# users.txt

@@ -1,4 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS   //调度中心
 #include <iostream>
 #include <algorithm>
 #include <cstring>

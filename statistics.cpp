@@ -9,7 +9,7 @@
 // 四个函数实现，直接剪切过来
 void markAfterContestSolves(std::vector<RatingChange>& history, const std::string& handle) {
     // 1. 获取用户所有提交
-    std::string statusJson = getUserStatus(handle);
+    std::string statusJson = getUserStatus(handle); //  解析 statusJson 获取所有OK提交
     if (statusJson.empty()) return;
 
     cJSON* root = cJSON_Parse(statusJson.c_str());
@@ -66,7 +66,7 @@ void markAfterContestSolves(std::vector<RatingChange>& history, const std::strin
         }
     }
     cJSON_Delete(root);
-}
+} //如果AC提交时间 > 比赛结束时间，那就是补题
 // ==================== 统计计算 ====================
 int countRecentContests(const std::vector<RatingChange>& history, int days) {
     time_t now = time(nullptr);
