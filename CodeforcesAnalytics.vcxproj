@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)libs\libcurl\curl-8.19.0_6-win64-mingw\include;$(ProjectDir)third_party</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)libs\libcurl\curl-8.19.0_6-win64-mingw\include;$(ProjectDir)third_party</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -119,29 +119,32 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)libs\libcurl\curl-8.19.0_6-win64-mingw\include;$(ProjectDir)third_party</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)libs\libcurl\curl-8.19.0_6-win64-mingw\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcurl.lib;ws2_32.lib;wldap32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="api_client.cpp" />
-    <ClCompile Include="data_parser.cpp" />
-    <ClCompile Include="html_render.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="statistics.cpp" />
+    <ClCompile Include="src\api_client.cpp" />
+    <ClCompile Include="src\data_parser.cpp" />
+    <ClCompile Include="src\html_render.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\statistics.cpp" />
     <ClCompile Include="third_party\cJSON.c" />
-    <ClCompile Include="utils.cpp" />
+    <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="api_client.h" />
-    <ClInclude Include="data_parser.h" />
-    <ClInclude Include="data_structures.h" />
-    <ClInclude Include="html_render.h" />
-    <ClInclude Include="statistics.h" />
+    <ClInclude Include="src\api_client.h" />
+    <ClInclude Include="src\data_parser.h" />
+    <ClInclude Include="src\data_structures.h" />
+    <ClInclude Include="src\html_render.h" />
+    <ClInclude Include="src\statistics.h" />
     <ClInclude Include="third_party\cJSON.h" />
-    <ClInclude Include="utils.h" />
+    <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
